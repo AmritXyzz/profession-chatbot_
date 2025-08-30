@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1,
+    "name": "Beach Sunset",
+    "genre": "Travel",
+    "image": "beach.jpg",
+    "description": "A beautiful sunset at the beach during summer vacation."
+  },
+  {
+    "id": 2,
+    "name": "Graduation Day",
+    "genre": "Milestone",
+    "image": "graduation.jpg",
+    "description": "The day of graduation with friends and family."
+  }
+]
