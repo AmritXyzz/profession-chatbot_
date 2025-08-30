@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Memories</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  body {
+    font-family: 'Inter', sans-serif;
+    background: #121217;
+    color: #ececf1;
+    margin:0; padding:0;
+  }
+  header {
+    background:#1f1f28; padding:16px; text-align:center; font-size:24px; font-weight:600; border-bottom:1px solid #2a2b32;
+  }
+  main { padding:24px; max-width:1200px; margin:0 auto; }
+  #memories-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap:16px;
+    margin-bottom:20px;
+  }
+  .memory-card {
+    background:#1f1f28;
+    border-radius:10px;
+    overflow:hidden;
+    display:flex;
+    flex-direction:column;
+    transition: transform 0.2s;
+  }
+  .memory-card:hover { transform: scale(1.05); }
+  .memory-card img { width:100%; height:150px; object-fit:cover; }
+  .memory-card .content { padding:12px; display:flex; flex-direction:column; flex:1; }
+  .memory-card h3 { font-size:16px; margin-bottom:4px; }
+  .memory-card p { font-size:13px; color:#aaa; margin-bottom:6px; }
+  .memory-card button {
+    margin-top:auto; padding:8px; border:none; border-radius:6px;
+    background:#10a37f; color:#fff; cursor:pointer; font-size:14px;
+  }
+  .memory-card button:hover { background:#0d8c6f; }
+  .pagination { display:flex; justify-content:center; gap:12px; margin-top:10px; }
+  .pagination button {
+    padding:6px 12px; border:none; border-radius:6px;
+    background:#10a37f; color:white; cursor:pointer; transition:background 0.2s;
+  }
+  .pagination button:hover { background:#0d8c6f; }
+  .pagination span { align-self:center; color:#ececf1; font-weight:500; }
+  @media(max-width:1024px){ #memories-container{grid-template-columns:repeat(3,1fr);} }
+  @media(max-width:768px){ #memories-container{grid-template-columns:repeat(2,1fr);} }
+  @media(max-width:480px){ #memories-container{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+
+<header>Memories</header>
+<main>
+  <div id="memories-container"></div>
+  <div class="pagination">
+    <button id="prev-btn">Prev</button>
+    <span id="page-info"></span>
+    <button id="next-btn">Next</button>
+  </div>
+</main>
+
+<script>
+let currentPage=1, limit=8;
+
+async function loadMemories(page=1){
+  const container=document.getElementById('memories-container');
+  container.innerHTML='';
+  const res=await fetch(`/api/memories?page=${page}&limit=${limit}`);
+  const data=await res.json();
+
+  data.memories.forEach(mem=>{
+    const card=document.createElement('div'); card.className='memory-card';
+    card.innerHTML=`
+      <img src="${mem.image}" alt="${mem.name}">
+      <div class="content">
+        <h3>${mem.name}</h3>
+        <p>${mem.genre}</p>
+        <p>${mem.description}</p>
+        <button onclick="downloadMemory('${mem.image}','${mem.name}')">Download</button>
+      </div>
+    `;
+    container.appendChild(card);
+  });
+  document.getElementById('page-info').textContent=`Page ${data.page} of ${data.totalPages}`;
+}
+
+document.getElementById('prev-btn').addEventListener('click', ()=>{
+  if(currentPage>1){ currentPage--; loadMemories(currentPage); }
+});
+document.getElementById('next-btn').addEventListener('click', ()=>{
+  currentPage++; loadMemories(currentPage);
+});
+
+function downloadMemory(img,name){
+  const a=document.createElement('a'); a.href=img; a.download=name; a.click();
+}
+
+loadMemories(currentPage);
+</script>
+
+</body>
+</html>

@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>ChatGPT Clone Dark Theme</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  font-family: 'Inter', sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  background: #0b0b0d;
+  color: #e5e5e5;
+}
+
+header {
+  background: #111114;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #2a2b32;
+}
+header select {
+  background: #1a1a1f;
+  color: #e5e5e5;
+  border: 1px solid #3a3a45;
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+#chat-container {
+  flex: 1;
+  overflow-y: auto;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  background: #0b0b0d;
+}
+
+.message {
+  max-width: 75%;
+  padding: 14px 18px;
+  margin-bottom: 14px;
+  border-radius: 12px;
+  font-size: 15px;
+  line-height: 1.5;
+  opacity: 0;
+  transform: translateY(8px);
+  animation: fadeIn 0.25s ease forwards;
+  word-wrap: break-word;
+  position: relative;
+}
+.message:hover { background: rgba(255, 255, 255, 0.05); }
+
+.user {
+  background: #10a37f;
+  color: #fff;
+  margin-left: auto;
+  border-bottom-right-radius: 2px;
+}
+.bot {
+  background: #1c1c23;
+  color: #e5e5e5;
+  margin-right: auto;
+  border-bottom-left-radius: 2px;
+}
+
+.audio-icon {
+  width: 20px;
+  height: 20px;
+  background: url('data:image/svg+xml;base64,PHN2ZyBmaWxsPSIjZTVlNWU1IiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyNCIgaGVpZ2h0PSIyNCI+PHBhdGggZD0iTTEyIDJhMiAyIDAgMCAwLTIgMnYxMmEyIDIgMCAwIDAgMiAyYzYuNjYgMCAxMiA1LjM0IDEyIDEyIDAgNi42Ni01LjM0IDEyLTEyIDEycy0xMi01LjM0LTEyLTEyYTIgMiAwIDAgMC0yLTJ6bTAgMmEyIDIgMCAwIDEgMiAydjEyYTIgMiAwIDAgMS0yIDJjLTYuNjYgMC0xMi01LjM0LTEyLTEyIDAtNi42NiA1LjM0LTEyIDEyLTEyeiIvPjwvc3ZnPg==') no-repeat center center;
+  background-size: contain;
+  position: absolute;
+  bottom: 4px;
+  right: 6px;
+  cursor: pointer;
+}
+@keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
+
+#input-bar {
+  background: #111114;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  border-top: 1px solid #2a2b32;
+}
+#user-input {
+  flex: 1;
+  background: #1a1a1f;
+  border: none;
+  color: #e5e5e5;
+  font-size: 15px;
+  resize: none;
+  height: 48px;
+  padding: 12px;
+  border-radius: 8px;
+}
+#user-input:focus { outline: none; background: #26262d; }
+
+#send-btn {
+  background: #10a37f;
+  color: #fff;
+  border: none;
+  padding: 0 20px;
+  height: 44px;
+  border-radius: 8px;
+  margin-left: 12px;
+  cursor: pointer;
+  font-size: 15px;
+}
+#send-btn:hover { background: #0d8c6f; }
+</style>
+</head>
+<body>
+
+<header>
+  <select id="profession">
+    <option>Teacher</option>
+    <option>Doctor</option>
+    <option>Engineer</option>
+    <option>Lawyer</option>
+  </select>
+</header>
+
+<div id="chat-container"></div>
+
+<div id="input-bar">
+  <textarea id="user-input" placeholder="Send a message..."></textarea>
+  <button id="send-btn">Send</button>
+</div>
+
+<script>
+const chat = document.getElementById('chat-container');
+const input = document.getElementById('user-input');
+const sendBtn = document.getElementById('send-btn');
+const profession = document.getElementById('profession');
+
+function addMessage(text, sender, audioData = null) {
+  const msg = document.createElement('div');
+  msg.className = `message ${sender}`;
+  chat.appendChild(msg);
+  chat.scrollTop = chat.scrollHeight;
+
+  // Animate typing for bot
+  if (sender === 'bot') {
+    let index = 0;
+    const interval = setInterval(() => {
+      msg.textContent += text[index];
+      index++;
+      chat.scrollTop = chat.scrollHeight;
+      if (index >= text.length) {
+        clearInterval(interval);
+
+        // After bot finished typing, add audio icon if available
+        if (audioData) {
+          const icon = document.createElement('div');
+          icon.className = 'audio-icon';
+          icon.title = 'Play audio';
+          icon.addEventListener('click', () => {
+            const audio = new Audio(audioData);
+            audio.play();
+          });
+          msg.appendChild(icon);
+        }
+      }
+    }, 25);
+  } else {
+    msg.textContent = text;
+  }
+}
+
+sendBtn.addEventListener('click', async () => {
+  const text = input.value.trim();
+  if (!text) return;
+  addMessage(text, 'user');
+  input.value = '';
+
+  try {
+    const res = await fetch(`/generate-text?message=${encodeURIComponent(text)}&profession=${profession.value}`);
+    const data = await res.json();
+    addMessage(data.text, 'bot', data.audio);
+  } catch (err) {
+    addMessage("Error generating response", "bot");
+  }
+});
+</script>
+
+</body>
+</html>
